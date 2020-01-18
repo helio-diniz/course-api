@@ -1,2 +1,4 @@
 # course-api
-Course given by a software company.
+Courses given by a software company.
+
+---
