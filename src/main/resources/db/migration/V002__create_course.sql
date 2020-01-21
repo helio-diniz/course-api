@@ -1,5 +1,6 @@
 CREATE TABLE curso(
 	codigo BIGINT(20) NOT NULL AUTO_INCREMENT,
+	descricao VARCHAR(100) NOT NULL,
 	data_inicio DATE NOT NULL,
 	data_termino DATE NOT NULL,
 	quantidade_alunos INT,
