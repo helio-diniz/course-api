@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>br.com.castgroup</groupId>
 	<artifactId>course-api</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<name>course-api</name>
 	<description>Courses given by Cast Group.</description>
 
