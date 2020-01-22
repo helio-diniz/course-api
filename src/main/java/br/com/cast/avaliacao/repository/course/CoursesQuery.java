@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import br.com.cast.avaliacao.model.Course;
 import br.com.cast.avaliacao.service.BusinessException;
 
-public interface CourseQuery {
+public interface CoursesQuery {
 	public Page<Course> findPage(String description, Pageable pageable);
 	public boolean checkDates(Course course) throws BusinessException;
 }

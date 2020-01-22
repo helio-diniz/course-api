@@ -189,7 +189,7 @@ public class CourseServiceTest {
 		deleteCourse(course);
 		List<Course> courseList = getAllCourses();
 		doNothing().when(courses).deleteById(4L);
-		when(courses.findAll()).thenReturn(courseList);
+		when(courses.findById(4L)).thenReturn(Optional.of(course));
 		this.courseService.delete(course.getId());
 		
 		List<Course> persistedCourseList = getAllCourses();
@@ -205,11 +205,17 @@ public class CourseServiceTest {
 		deleteCourse(course);
 		List<Course> courseList = getAllCourses();
 		doNothing().when(courses).deleteById(40L);
-		when(courses.findAll()).thenReturn(courseList);
-		this.courseService.delete(40L);
+		when(courses.findById(40L)).thenReturn(Optional.empty());
 		
-		List<Course> persistedCourseList = getAllCourses();
-		assertThat(courseList).isEqualTo(persistedCourseList);
+		try {
+			this.courseService.delete(40L);
+		} catch (BusinessException e) {
+			assertThat(e.getMessage()).isEqualTo("Curso Inválido para exclusão.");
+			List<Course> persistedCourseList = getAllCourses();
+			assertThat(courseList).isEqualTo(persistedCourseList);
+			return;
+		}
+		assertThat(false).isTrue();
 	}
 	
 	@Test
@@ -246,12 +252,12 @@ public class CourseServiceTest {
 		Course course = new Course(null, "JPA-Hibernate", LocalDate.of(2020, 2, 20), LocalDate.of(2020, 4, 20), 15,
 				this.getCategoryById(2L));
 		assertThat(course.getId()).isNull();
-		when(this.courses.checkDates(course)).thenThrow(new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período"));
+		when(this.courses.checkDates(course)).thenThrow(new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período."));
 
 		try {
 			this.courseService.save(course);
 		} catch (BusinessException e) {
-			assertThat(e.getMessage()).isEqualTo("Existe(m) curso(s) planejado(s) dentro do mesmo período");
+			assertThat(e.getMessage()).isEqualTo("Existe(m) curso(s) planejado(s) dentro do mesmo período.");
 			return;
 		} 
 		assertThat(false).isTrue();
@@ -271,7 +277,7 @@ public class CourseServiceTest {
 		Course persistedCourse = this.saveCourse(course);
 		when(courses.checkDates(course)).thenReturn(true);
 		when(courses.save(course)).thenReturn(persistedCourse);
-		persistedCourse = this.courseService.update(course);
+		persistedCourse = this.courseService.update(3L, course);
 		assertThat(persistedCourse).isNotNull();
 		assertThat(persistedCourse.getId()).isNotNull();
 		assertThat(persistedCourse.getId()).isEqualTo(3L);
@@ -292,7 +298,7 @@ public class CourseServiceTest {
 		course.setFinishDate(LocalDate.of(2020, 5, 20));
 		when(this.courses.checkDates(course)).thenReturn(true);
 		try {
-			this.courseService.update(course);
+			this.courseService.update(3L, course);
 		} catch (BusinessException e) {
 			assertThat(e.getMessage()).isEqualTo("A data de início do curoso é maior que a data de finalização.");
 			return;
@@ -310,13 +316,29 @@ public class CourseServiceTest {
 		course.setFinishDate(LocalDate.of(2020, 4, 20));
 		when(this.courses.checkDates(course)).thenThrow(new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período"));
 		try {
-			this.courseService.update(course);
+			this.courseService.update(3L, course);
 		} catch (BusinessException e) {
 			assertThat(e.getMessage()).isEqualTo("A data de início do curoso é maior que a data de finalização.");
 			return;
 		} 
 		assertThat(false).isTrue();
 	}
+	
+	@Test
+	public void updateInexistentCourse() {
+		Course course = getCourseById(3L);
+		course.setId(30L);
+		when(courses.findById(30L)).thenReturn(Optional.empty());	
+		when(this.courses.checkDates(course)).thenReturn(true);
+		try {
+			this.courseService.update(30L, course);
+		} catch (BusinessException e) {
+			assertThat(e.getMessage()).isEqualTo("Curso Inválido para exclusão.");
+			return;
+		} 
+		assertThat(false).isTrue();
+	}
+	
 	
 	private Course saveCourse(Course course) {
 		if (course == null) {
