@@ -11,7 +11,7 @@ import br.com.cast.avaliacao.model.Category;
 import br.com.cast.avaliacao.model.Course;
 
 @SpringBootTest
-public class CourseModelsTest {
+public class CourseModelTest {
 
 	@Test
 	public void categoryCreation() {

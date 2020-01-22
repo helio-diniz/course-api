@@ -31,7 +31,12 @@ public class CourseService {
 	}
 	
 	public void delete(Long id) {
-		this.courses.deleteById(id);
+		Optional<Course> optionalCourse = this.findById(id);
+		if (optionalCourse.isPresent()) {
+			this.courses.deleteById(id);			
+		} else {
+			throw new BusinessException("Curso Inválido para exclusão.");
+		}
 	}
 
 	public Course save(Course course) {
@@ -40,22 +45,27 @@ public class CourseService {
 		} else {
 			if (checkCourseDates(course)) {
 				return this.courses.save(course);
+			} else {				
+				throw new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período.");		
 			}
-			return null;			
 		}
 	}
 
-	public Course update(Course course) {
+	public Course update(Long id, Course course) {
 		if (course == null || course.getId() == null) {
 			return null;
 		} else {
 			if (checkCourseDates(course)) {
-				Optional<Course> optionalCourse = this.findById(course.getId());
+				Optional<Course> optionalCourse = this.findById(id);
+				if (!optionalCourse.isPresent()) {
+					throw new BusinessException("Curso Inválido para exclusão.");
+				}
 				Course persistedCourse = optionalCourse.get();
 				BeanUtils.copyProperties(course, persistedCourse, "codigo");	
 				return this.courses.save(persistedCourse);
+			} else {				
+				throw new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período.");		
 			}
-			return null;			
 		}
 	}
 	

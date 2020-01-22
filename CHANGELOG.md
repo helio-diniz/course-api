@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.2] - 2020-01-22
+
+### Changed
+- The `Courses` repository, `CoursesQuery` interface and `CoursesQueryImpl` to implement the description filter and date checking.
+- The `CourseService` and `CourseServiceTest` class to add the Business Exception verification. 
+
+### Added
+- The `CourseController` and `CourseControlleTest` to implement the REST controller.
+- The `V003__insert_courses.sql` migration to input some Course's data.
+- Branch: `1_0_2_rest_controller`.
+
+
 ## [1.0.1] - 2020-01-21 
 
 ### Added
