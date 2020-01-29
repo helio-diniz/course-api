@@ -2,9 +2,16 @@
 
 ## [1.0.2] - 2020-01-xx
 
+### Changed
+- The `Category` and `Course` model class to implement the JPA bean validation at its attributes.
+- The `CourseController` class to execute require JPA bean validation of the `saveCourse` and `updateCourse` methods' parameters.
+- The `CoursesQueryImpl` to fix the date checking.
+- The `application.properties` to force a fail when there is an unknown property in the HTTP body.
+- Branch: `1_0_3_ui_integration`
+ 
 ### Added
 - New `message.properties` file to configure the messages which are sent to users.
-- New `ValidationMessages.properties` file to configure the JPA bean validation messages which are sent to users.
+- New `ValidationMessages.properties` file to configure JPA bean validation messages which are sent to users.
 - New `CorsFilter` class to implement a filter which handles with the CORS constraint.
 - New `ExceptionHandler` class to handle with the exceptions below: 
 	- the `HttpMessageNotReadableException` exception when HTTP body contains invalid values;
@@ -21,6 +28,7 @@
 ### Changed
 - The `Courses` repository, `CoursesQuery` interface and `CoursesQueryImpl` to implement the description filter and date checking.
 - The `CourseService` and `CourseServiceTest` class to add the Business Exception verification. 
+- Branch: `1_0_2_rest_controller`.
 
 ### Added
 - The `CourseController` and `CourseControlleTest` to implement the REST controller.

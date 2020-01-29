@@ -1,6 +1,5 @@
 package br.com.cast.avaliacao.model;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
