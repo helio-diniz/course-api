@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.2] - 2020-01-xx
+
+### Added
+- New `message.properties` file to configure the messages which are sent to users.
+- New `ValidationMessages.properties` file to configure the JPA bean validation messages which are sent to users.
+- New `CorsFilter` class to implement a filter which handles with the CORS constraint.
+- New `ExceptionHandler` class to handle with the exceptions below: 
+	- the `HttpMessageNotReadableException` exception when HTTP body contains invalid values;
+	- the `MethodArgumentNotValidException` exception when there are invalid arguments in the HTTP method;
+	- the `EmptyResultDataAccessException` exception when the resource is not found.
+	- the `DataIntegrityViolationException` exception when an attempt to insert or update data results in violation of an integrity constraint.
+	- the BusinessException` exception when there is a violation of any business rule. 
+ - New `CategoryController` REST controller class. 
+ - New `CategoryControllerTest` test class.
+- Branch: `1_0_3_ui_integration`.
+
 ## [1.0.2] - 2020-01-22
 
 ### Changed

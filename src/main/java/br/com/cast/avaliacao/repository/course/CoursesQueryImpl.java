@@ -61,7 +61,7 @@ public class CoursesQueryImpl implements CoursesQuery {
 		
 		CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
 		Root<Course> root = criteria.from(Course.class);
-		
+		/*
 		if (course.getId() == null) {
 			criteria.where(
 					cb.or(
@@ -87,8 +87,33 @@ public class CoursesQueryImpl implements CoursesQuery {
 						)	
 					)
 			);	
+		}*/
+		if (course.getId() == null) {
+			criteria.where(
+					cb.or(
+							cb.and( cb.greaterThanOrEqualTo(root.get("startDate"), course.getStartDate()),
+									cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate())
+									),
+							cb.and( cb.greaterThanOrEqualTo(root.get("finishDate"), course.getFinishDate()),
+									cb.lessThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
+									)
+							)	
+			);			
+		} else {
+			criteria.where(
+					cb.and(
+					    cb.notEqual(root.get("id"), course.getId()),		
+						cb.or(
+								cb.and( cb.greaterThanOrEqualTo(root.get("startDate"), course.getStartDate()),
+										cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate())
+								),
+								cb.and( cb.greaterThanOrEqualTo(root.get("finishDate"), course.getStartDate()),
+										cb.lessThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
+								)
+						)	
+					)
+			);	
 		}
-		
 		criteria.select(cb.count(root));
 		
 		Long count = manager.createQuery(criteria).getSingleResult();
