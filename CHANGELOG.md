@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.2] - 2020-01-xx
+## [1.0.3] - 2020-01-29
 
 ### Changed
 - The `Category` and `Course` model class to implement the JPA bean validation at its attributes.
