@@ -26,6 +26,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -44,12 +46,15 @@ import br.com.cast.avaliacao.service.CourseService;
 public class CourseControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
+	@Autowired
+	private MessageSource messageSource;
 	@MockBean
 	private CourseService courseService;
 	private Map<Long, Category> categoryMap = new HashMap<>();
 	private Map<Long, Course> courseMap = new HashMap<>();
-	private String URL = "/cursos";
-
+	private String courseURL = "/cursos";
+	private Long id;
+/*
 	@BeforeEach
 	public void initTest() {
 		this.categoryMap.clear();
@@ -71,32 +76,35 @@ public class CourseControllerTest {
 				new Course(5L, "XP", LocalDate.of(2021, 3, 11), LocalDate.of(2021, 8, 1), 30, getCategoryById(4L)));
 		this.courseMap.put(6L, new Course(6L, "Testes de Aceitação", LocalDate.of(2021, 8, 10),
 				LocalDate.of(2020, 12, 10), 10, getCategoryById(3L)));
-		MockitoAnnotations.initMocks(CourseApiApplicationTests.class);
+		MockitoAnnotations.initMocks(CourseControllerTest.class);
 	}
 
 	@Test
 	public void findScrumCourseById() throws Exception {
-		Course course = getCourseById(4L);
-		when(this.courseService.findById(4L)).thenReturn(Optional.of(course));
+		this.id = 4L;
+		Course course = getCourseById(this.id);
+		when(this.courseService.findById(this.id)).thenReturn(Optional.of(course));
 		String jsonResponse = "{\"id\":4,\"description\":\"Scrum\",\"startDate\":\"2021-01-05\",\"finishDate\":\"2021-02-28\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}}";
-		this.mockMvc.perform(get("/cursos/4")).andDo(print()).andExpect(status().isOk())
+		this.mockMvc.perform(get(this.courseURL+ "/"+ this.id)).andDo(print()).andExpect(status().isOk())
 				.andExpect(content().json(jsonResponse));
 	}
 
 	@Test
 	public void findXPCourseById() throws Exception {
-		Course course = getCourseById(5L);
-		when(this.courseService.findById(5L)).thenReturn(Optional.of(course));
+		this.id = 5L;
+		Course course = getCourseById(this.id);
+		when(this.courseService.findById(this.id)).thenReturn(Optional.of(course));
 		String jsonResponse = "{\"id\":5,\"description\":\"XP\",\"startDate\":\"2021-03-11\",\"finishDate\":\"2021-08-01\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}}";
-		this.mockMvc.perform(get("/cursos/5")).andDo(print()).andExpect(status().isOk())
+		this.mockMvc.perform(get( this.courseURL + "/" + this.id)).andDo(print()).andExpect(status().isOk())
 				.andExpect(content().json(jsonResponse));
 	}
 
 	@Test
 	public void findByIdInexistentCourse() throws Exception {
-		when(courseService.findById(10L)).thenReturn(Optional.empty());
+		this.id = 10L;
+		when(courseService.findById(this.id)).thenReturn(Optional.empty());
 
-		this.mockMvc.perform(get("/cursos/10")).andDo(print()).andExpect(status().isNotFound());
+		this.mockMvc.perform(get(this.courseURL + "/" + this.id)).andDo(print()).andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -110,7 +118,7 @@ public class CourseControllerTest {
 				+ "{\"id\":5,\"description\":\"XP\",\"startDate\":\"2021-03-11\",\"finishDate\":\"2021-08-01\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}},"
 				+ "{\"id\":6,\"description\":\"Testes de Aceitação\",\"startDate\":\"2021-08-10\",\"finishDate\":\"2020-12-10\",\"amountOfStudents\":10,\"category\":{\"id\":3,\"description\":\"Qualidade\"}}"
 				+ "]";
-		this.mockMvc.perform(get("/cursos/all")).andDo(print()).andExpect(status().isOk())
+		this.mockMvc.perform(get(this.courseURL + "/todos")).andDo(print()).andExpect(status().isOk())
 				.andExpect(content().json(jsonResponse));
 	}
 
@@ -121,60 +129,69 @@ public class CourseControllerTest {
 		Page<Course> coursePage = getPagedCourses("", PageRequest.of(page, size));
 		assertThat(coursePage).isNotNull();
 		when(courseService.findPage("%", PageRequest.of(0, 3))).thenReturn(coursePage);
-
-		String jsonResponse = "["
+		
+		String jsonResponse = "{\"content\":["
 				+ "{\"id\":1,\"description\":\"JavaEE\",\"startDate\":\"2020-01-15\",\"finishDate\":\"2020-03-15\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}},"
 				+ "{\"id\":2,\"description\":\"JavaWeb\",\"startDate\":\"2020-07-01\",\"finishDate\":\"2020-10-14\",\"amountOfStudents\":30,\"category\":{\"id\":2,\"description\":\"Programação\"}},"
-				+ "{\"id\":3,\"description\":\"Angular\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}"
-				+ "]";
-		this.mockMvc.perform(get(this.URL + "?description=%&page=" + page + "&size="+ size)).andDo(print()).andExpect(status().isOk());
-				//.andExpect(content().json(jsonResponse));
-		System.out.println("Oi");
+				+ "{\"id\":3,\"description\":\"Angular\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}],"
+				+ "\"pageable\":\"INSTANCE\",\"totalElements\":3,\"last\":true,\"totalPages\":1,\"size\":3,\"number\":0,\"sort\":{\"sorted\":false,\"unsorted\":true,\"empty\":true},\"first\":true,\"numberOfElements\":3,\"empty\":false}";
+		this.mockMvc.perform(get(this.courseURL + "?description=%&page=" + page + "&size="+ size)).andDo(print())
+			.andExpect(status().isOk()).andExpect(content().json(jsonResponse));
 	}
 
 	@Test
 	public void deleteXPCourse() throws Exception {
-		Course course = getCourseById(5L);
+		this.id = 5L;
+		Course course = getCourseById(this.id );
 		deleteCourse(course);
-		doNothing().when(this.courseService).delete(5L);
+		doNothing().when(this.courseService).delete(this.id );
 
-		this.mockMvc.perform(delete("/cursos/5")).andDo(print()).andExpect(status().is2xxSuccessful());
+		this.mockMvc.perform(delete(this.courseURL +"/"+ this.id )).andDo(print()).andExpect(status().is2xxSuccessful());
 	}
 
 	@Test
 	public void deleteInexistingCourse() throws Exception {
-		doThrow(new BusinessException("Curso Inválido para exclusão.")).when(this.courseService).delete(50L);
-		this.mockMvc.perform(delete("/cursos/50")).andDo(print()).andExpect(status().isNotFound());
+		this.id = 50L;
+		String userMessage = messageSource.getMessage("message.course-invalid-id", null,
+				LocaleContextHolder.getLocale());
+		String jsonResult = "[{\"userMessage\":\"Indentificado de curso Inválido para operação.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Indentificado de curso Inválido para operação.\"}]";
+		doThrow(new BusinessException(userMessage)).when(this.courseService).delete(this.id);
+		this.mockMvc.perform(delete(this.courseURL + "/" + this.id )).andDo(print()).andExpect(status().is4xxClientError())
+			.andExpect(content().json(jsonResult));
 	}
 
 	@Test
 	public void saveHibernateCourse() throws Exception {
-		Course persistendCourse = new Course(7L, "JPA-Hibernate", LocalDate.of(2020, 3, 20), LocalDate.of(2020, 4, 20),
+		this.id = 7L;
+		Course persistendCourse = new Course(this.id , "JPA-Hibernate", LocalDate.of(2020, 3, 20), LocalDate.of(2020, 4, 20),
 				15, this.getCategoryById(2L));
 		when(this.courseService.save(any(Course.class))).thenReturn(persistendCourse);
 
 		String json = "{\"id\":null,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-03-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		String jsonResponse = "{\"id\":7,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-03-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
-		MvcResult result = this.mockMvc.perform(post(this.URL).contentType(MediaType.APPLICATION_JSON).content(json))
+		MvcResult result = this.mockMvc.perform(post(this.courseURL + "/novo").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().is2xxSuccessful()).andExpect(content().json(jsonResponse)).andReturn();
 		System.out.println(result);
 	}
 
 	@Test
 	public void saveHibernateStartDateAfterThatFinishDateCourse() throws Exception {
+		String userMessage = messageSource.getMessage("message.course-invalid-period", null,
+				LocaleContextHolder.getLocale());
 		when(this.courseService.save(any(Course.class)))
-				.thenThrow(new BusinessException("A data de início do curoso é maior que a data de finalização."));
+				.thenThrow(new BusinessException(userMessage));
 
 		String json = "{\"id\":null,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-04-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
-		MvcResult result = this.mockMvc.perform(post(this.URL).contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(json)).andReturn();
+		String jsonResult = "[{\"userMessage\":\"A data de início do curso é maior que a data de finalização.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: A data de início do curso é maior que a data de finalização.\"}]";
+		MvcResult result = this.mockMvc.perform(post(this.courseURL+"/novo").contentType(MediaType.APPLICATION_JSON).content(json))
+				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
 		System.out.println(result);
 	}
 
 	@Test
 	public void updateAngularCourse() throws Exception {
-		Course persistendCourse = getCourseById(3L);
-
+		this.id = 3L;
+		Course persistendCourse = getCourseById(this.id);
 		assertThat(persistendCourse.getDescription()).isEqualTo("Angular");
 		assertThat(persistendCourse.getFinishDate().isEqual(LocalDate.of(2020, 6, 30)));
 		persistendCourse.setDescription("Angular 6");
@@ -183,30 +200,39 @@ public class CourseControllerTest {
 		String jsonResponse = "{\"id\":3,\"description\":\"Angular 6\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-20\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		when(this.courseService.update(any(Long.class), any(Course.class))).thenReturn(persistendCourse);
 		MvcResult result = this.mockMvc
-				.perform(put(this.URL + "/3").contentType(MediaType.APPLICATION_JSON).content(json))
+				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().is2xxSuccessful()).andExpect(content().json(jsonResponse)).andReturn();
 		System.out.println(result);
 	}
 
 	@Test
 	public void updateAngularCourseInvalidStartDate() throws Exception {
+		this.id = 3L;
 		String json = "{\"id\":3,\"description\":\"Angular\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
+		String userMessage = messageSource.getMessage("message.course-already-planned", null,
+				LocaleContextHolder.getLocale());
 		when(this.courseService.update(any(Long.class), any(Course.class)))
-				.thenThrow(new BusinessException("Existe(m) curso(s) planejado(s) dentro do mesmo período."));
+				.thenThrow(new BusinessException(userMessage));
+		String jsonResult = "[{\"userMessage\":\"Existe(m) curso(s) planejado(s) dentro do mesmo período.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Existe(m) curso(s) planejado(s) dentro do mesmo período.\"}]";
 		MvcResult result = this.mockMvc
-				.perform(put(this.URL + "/3").contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(json)).andReturn();
+				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
+				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
 		System.out.println(result);
 	}
 
 	@Test
 	public void updateInexistentCourse() throws Exception {
+		this.id = 30L;
 		String json = "{\"id\":30,\"description\":\"Javascript\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
+		String userMessage = messageSource.getMessage("message.course-invalid-id", null,
+				LocaleContextHolder.getLocale());
 		when(this.courseService.update(any(Long.class), any(Course.class)))
-				.thenThrow(new BusinessException("Curso Inválido para exclusão."));
+				.thenThrow(new BusinessException(userMessage));
+		String jsonResult = "[{\"userMessage\":\"Indentificado de curso Inválido para operação.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Indentificado de curso Inválido para operação.\"}]";
+
 		MvcResult result = this.mockMvc
-				.perform(put(this.URL + "/30").contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(json)).andReturn();
+				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
+				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
 		System.out.println(result);
 	}
 
@@ -258,4 +284,5 @@ public class CourseControllerTest {
 			this.courseMap.remove(course.getId());
 		}
 	}
+*/	
 }

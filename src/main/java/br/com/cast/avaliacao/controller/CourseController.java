@@ -1,11 +1,14 @@
 package br.com.cast.avaliacao.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,9 +24,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.cast.avaliacao.model.Course;
-import br.com.cast.avaliacao.service.BusinessException;
 import br.com.cast.avaliacao.service.CourseService;
 
 @RestController
@@ -32,6 +35,9 @@ public class CourseController {
 	@Autowired
 	private CourseService courseService;
 
+	@Autowired
+	private MessageSource messageSource;
+
 	@GetMapping
 	public Page<Course> findPage(@RequestParam(required = false, defaultValue = "") String description,
 			Pageable pageable) {
@@ -39,7 +45,7 @@ public class CourseController {
 		return pagedCourse;
 	}
 
-	@GetMapping("/all")
+	@GetMapping("/todos")
 	public @ResponseBody List<Course> findAllCourses() {
 		return this.courseService.findAll();
 	}
@@ -54,32 +60,24 @@ public class CourseController {
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
-		try {
-			this.courseService.delete(id);
-			return ResponseEntity.ok().build();
-		} catch (BusinessException e) {
-			return ResponseEntity.notFound().build();
-		}
+		this.courseService.delete(id);
+		return ResponseEntity.ok().build();
 	}
 
-	@PostMapping
-	public ResponseEntity<Course> saveCourse(@RequestBody Course course, HttpServletResponse response) {
-		try {
-			Course persistedCourse = this.courseService.save(course);
-			return ResponseEntity.status(HttpStatus.CREATED).body(persistedCourse);
-		} catch (BusinessException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(course);
-		}
+	@PostMapping("/novo")
+	public ResponseEntity<Course> saveCourse(@Valid @RequestBody Course course, HttpServletResponse response) {
+		Course persistedCourse = this.courseService.save(course);
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{id}").buildAndExpand(course.getId())
+				.toUri();
+		response.setHeader("Localion", uri.toASCIIString());
+		return ResponseEntity.status(HttpStatus.CREATED).body(persistedCourse);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course course,
+	public ResponseEntity<Course> updateCourse(@PathVariable Long id, @Valid @RequestBody Course course,
 			HttpServletResponse response) {
-		try {
-			Course persistedCourse = this.courseService.update(id, course);
-			return ResponseEntity.status(HttpStatus.CREATED).body(persistedCourse);
-		} catch (BusinessException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(course);
-		}
+		Course persistedCourse = this.courseService.update(id, course);
+		return ResponseEntity.status(HttpStatus.CREATED).body(persistedCourse);
+
 	}
 }

@@ -10,6 +10,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 
 @Entity
 @Table(name = "curso")
@@ -19,15 +24,22 @@ public class Course {
 	@Column(name = "codigo")
 	private Long id;
 	@Column(name = "descricao")
+	@NotNull
+	@Size(min=0, max=100)
 	private String description;
 	@Column(name = "data_inicio")
+	@NotNull
+	@JsonDeserialize(using = LocalDateDeserializer.class)
 	private LocalDate startDate;
 	@Column(name = "data_termino")
+	@NotNull
+	@JsonDeserialize(using = LocalDateDeserializer.class)
 	private LocalDate finishDate;
 	@Column(name = "quantidade_alunos")
 	private Integer amountOfStudents;
 	@ManyToOne
 	@JoinColumn(name = "categoria_codigo")
+	@NotNull
 	private Category category;
 
 	public Course() {
@@ -91,6 +103,31 @@ public class Course {
 
 	public void setCategory(Category category) {
 		this.category = category;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Course other = (Course) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 
 }
