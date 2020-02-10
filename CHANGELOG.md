@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.3] - 2020-02-10
+## [1.0.4] - 2020-02-10
 
 ### Added
 - New `V004__create_and_insert_users_and_permissions.sql` migration file to define user and permission tables.
