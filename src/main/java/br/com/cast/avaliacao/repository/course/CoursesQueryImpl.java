@@ -9,8 +9,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 
 import br.com.cast.avaliacao.model.Course;
+import br.com.cast.avaliacao.repository.projection.SummarizedCourse;
 import br.com.cast.avaliacao.service.BusinessException;
 
 public class CoursesQueryImpl implements CoursesQuery {
@@ -41,6 +42,21 @@ public class CoursesQueryImpl implements CoursesQuery {
 		return new PageImpl<>(courseList, pageable, totalRecords);
 	}
 	
+	@Override
+	public List<SummarizedCourse> findAllSummarizedCourses() {
+		CriteriaBuilder builder = manager.getCriteriaBuilder();
+		CriteriaQuery<SummarizedCourse> criteria = builder.createQuery(SummarizedCourse.class);
+		Root<Course> root = criteria.from(Course.class);
+		
+		criteria.select(builder.construct(SummarizedCourse.class, root.get("id"),
+			root.get("description"), root.get("startDate"), root.get("finishDate"),
+			root.get("amountOfStudents"), root.get("category").get("description")));
+		
+		TypedQuery<SummarizedCourse> query = manager.createQuery(criteria);
+		List<SummarizedCourse> courseList = query.getResultList();
+		return courseList;
+	}
+	
 	private long total(String description) {
 		CriteriaBuilder builder =  manager.getCriteriaBuilder();
 		
@@ -54,6 +70,7 @@ public class CoursesQueryImpl implements CoursesQuery {
 		
 		return manager.createQuery(criteria).getSingleResult();
 	}
+	
 
 	@Override
 	public boolean checkDates(Course course) throws BusinessException {
@@ -61,38 +78,11 @@ public class CoursesQueryImpl implements CoursesQuery {
 		
 		CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
 		Root<Course> root = criteria.from(Course.class);
-		/*
-		if (course.getId() == null) {
-			criteria.where(
-					cb.or(
-							cb.and( cb.lessThanOrEqualTo(root.get("startDate"), course.getStartDate()),
-									cb.greaterThanOrEqualTo(root.get("finishDate"), course.getStartDate())
-									),
-							cb.and( cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate()),
-									cb.greaterThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
-									)
-							)	
-			);			
-		} else {
-			criteria.where(
-					cb.and(
-					    cb.notEqual(root.get("id"), course.getId()),		
-						cb.or(
-								cb.and( cb.lessThanOrEqualTo(root.get("startDate"), course.getStartDate()),
-										cb.greaterThanOrEqualTo(root.get("finishDate"), course.getStartDate())
-								),
-								cb.and( cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate()),
-										cb.greaterThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
-								)
-						)	
-					)
-			);	
-		}*/
 		if (course.getId() == null) {
 			criteria.where(
 					cb.or(
 							cb.and( cb.greaterThanOrEqualTo(root.get("startDate"), course.getStartDate()),
-									cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate())
+								cb.lessThanOrEqualTo(root.get("startDate"), course.getFinishDate())
 									),
 							cb.and( cb.greaterThanOrEqualTo(root.get("finishDate"), course.getFinishDate()),
 									cb.lessThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
@@ -109,7 +99,7 @@ public class CoursesQueryImpl implements CoursesQuery {
 								),
 								cb.and( cb.greaterThanOrEqualTo(root.get("finishDate"), course.getStartDate()),
 										cb.lessThanOrEqualTo(root.get("finishDate"), course.getFinishDate())
-								)
+								)//
 						)	
 					)
 			);	
@@ -140,6 +130,5 @@ public class CoursesQueryImpl implements CoursesQuery {
 		query.setMaxResults(pageSize);
 	
 	}
-
 
 }

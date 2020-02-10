@@ -13,13 +13,14 @@ import org.springframework.stereotype.Service;
 
 import br.com.cast.avaliacao.model.Course;
 import br.com.cast.avaliacao.repository.Courses;
+import br.com.cast.avaliacao.repository.projection.SummarizedCourse;
 
 @Service
 public class CourseService {
 
 	@Autowired
 	private Courses courses;
-	
+
 	@Autowired
 	private MessageSource messageSource;
 
@@ -90,6 +91,10 @@ public class CourseService {
 			throw new BusinessException(userMessage);
 		}
 		return this.courses.checkDates(course);
+	}
+
+	public List<SummarizedCourse> findAllSummarizedCourse() {
+		return this.courses.findAllSummarizedCourses();
 	}
 
 	public MessageSource getMessageSource() {

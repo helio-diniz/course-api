@@ -1,7 +1,9 @@
 .project
 .classpath
+.factorypath
 .settings/
 /target
+.springBeans
 # Compiled class file
 *.class
 

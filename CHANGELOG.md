@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.3] - 2020-02-10
+
+### Added
+- New `V004__create_and_insert_users_and_permissions.sql` migration file to define user and permission tables.
+- New `AppUser` and `Permission` model classes.
+- New `AppUserRepository` repository interface;
+- New `AuthorizationServerConfig`, `ResourceServerConfig` and `OAuthSecurityConfig` classes to configure the OAuth2 security.
+- New `AppUserDetailService` service class to get user credentials from database.
+- New `RefreshTokenPreProcessorFilter` filter class to get the refresh token from a cookie.
+- New `RefreshTokenPostProcessor` filter class to remove the refresh token from the cookie on logout request.
+- New `OAuthSecurityTest` and `OAuthTokenGenerator` to tests the access token getting.
+- Branch: `1_0_4_api_security`.
+
+### Changed
+- The `CategoryControllerTest`, `CourseControllerTest`, `CursoModelTest` and `CourseServiceTest` classes to implement OAuth2 security in the test cases.
+- The `CategoryController` and `CourseController` classes to implement authority and grant validation.
+- The `CoursesQuery` interface and `CoursesQueryImpl` classes to implement the courses' summary searching.
+- Branch: `1_0_4_api_security`.
+
+
 ## [1.0.3] - 2020-01-29
 
 ### Changed
@@ -22,6 +42,7 @@
  - New `CategoryController` REST controller class. 
  - New `CategoryControllerTest` test class.
 - Branch: `1_0_3_ui_integration`.
+
 
 ## [1.0.2] - 2020-01-22
 
