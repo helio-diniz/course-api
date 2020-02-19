@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.5] - 2020-02-18
+
+### Added
+- The `CustomTokenEnhancer` class was created to add the logged user name in the pay load area of JwtToken.
+- The `ApplicationUser` class was created to wrap the `org.springframework.security.core.userdetails.User` class, adding a `AppUser` object for the current user. 
+- The `loadUserByUsername` method of the `AppUserDetailsService` was changed to return new `ApplicationUser` object for the current user.
+- Branch: `1_0_5_token_enhancer`.
+
+### Changed
+- The `AuthorizationServerConfig`, `OAuthSecurityConfig` and `ResourceServerConfig` classes were moved to `br.com.cast.avaliacao.config` package.
+- Branch: `1_0_5_token_enhancer`.
+
+
 ## [1.0.4] - 2020-02-10
 
 ### Added

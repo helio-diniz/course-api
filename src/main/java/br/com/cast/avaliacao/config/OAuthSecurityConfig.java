@@ -1,4 +1,4 @@
-package br.com.cast.avaliacao.security;
+package br.com.cast.avaliacao.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
