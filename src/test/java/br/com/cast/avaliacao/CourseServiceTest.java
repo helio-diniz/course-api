@@ -35,7 +35,7 @@ import br.com.cast.avaliacao.service.CourseService;
 
 @SpringBootTest
 public class CourseServiceTest {
-/*	
+	
 	@Autowired
 	private MessageSource messageSource;
 	@InjectMocks
@@ -430,5 +430,5 @@ public class CourseServiceTest {
 			this.courseMap.remove(course.getId());
 		}
 	}
-*/
+
 }

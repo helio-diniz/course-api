@@ -24,25 +24,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import br.com.cast.avaliacao.controller.CourseController;
 import br.com.cast.avaliacao.model.Category;
 import br.com.cast.avaliacao.model.Course;
+import br.com.cast.avaliacao.security.AppUserDetailsService;
 import br.com.cast.avaliacao.service.BusinessException;
 import br.com.cast.avaliacao.service.CourseService;
 
-@WebMvcTest(CourseController.class)
+@WebAppConfiguration
+@SpringBootTest
+@AutoConfigureMockMvc
+@ComponentScan(basePackages = {" br.com.cast.avaliacao"}) 
 public class CourseControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
@@ -50,13 +56,16 @@ public class CourseControllerTest {
 	private MessageSource messageSource;
 	@MockBean
 	private CourseService courseService;
+	@MockBean
+	private AppUserDetailsService users;
 	private Map<Long, Category> categoryMap = new HashMap<>();
 	private Map<Long, Course> courseMap = new HashMap<>();
 	private String courseURL = "/cursos";
 	private Long id;
-/*
+	private String token;
+
 	@BeforeEach
-	public void initTest() {
+	public void initTest() throws Exception {
 		this.categoryMap.clear();
 		this.categoryMap.put(1L, new Category(1L, "Comportamental"));
 		this.categoryMap.put(2L, new Category(2L, "Programação"));
@@ -77,6 +86,12 @@ public class CourseControllerTest {
 		this.courseMap.put(6L, new Course(6L, "Testes de Aceitação", LocalDate.of(2021, 8, 10),
 				LocalDate.of(2020, 12, 10), 10, getCategoryById(3L)));
 		MockitoAnnotations.initMocks(CourseControllerTest.class);
+		
+		OAuthTokenGenerator tokenGenerator = new OAuthTokenGenerator("password", "course-ui", "c0urs3_u1", "admin@challenge.com", "123456", 
+				new String[] {"ROLE_REGISTER_CATEGORY", "ROLE_SEARCH_CATEGORY", "ROLE_REGISTER_COURSE", 
+					"ROLE_DELETE_COURSE", "ROLE_SEARCH_COURSE"}, 
+				this.users, this.mockMvc);
+		this.token = tokenGenerator.obtainAccessToken();
 	}
 
 	@Test
@@ -85,8 +100,10 @@ public class CourseControllerTest {
 		Course course = getCourseById(this.id);
 		when(this.courseService.findById(this.id)).thenReturn(Optional.of(course));
 		String jsonResponse = "{\"id\":4,\"description\":\"Scrum\",\"startDate\":\"2021-01-05\",\"finishDate\":\"2021-02-28\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}}";
-		this.mockMvc.perform(get(this.courseURL+ "/"+ this.id)).andDo(print()).andExpect(status().isOk())
-				.andExpect(content().json(jsonResponse));
+		this.mockMvc.perform(get(this.courseURL+ "/"+ this.id)
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().isOk())
+			.andExpect(content().json(jsonResponse));
 	}
 
 	@Test
@@ -95,8 +112,10 @@ public class CourseControllerTest {
 		Course course = getCourseById(this.id);
 		when(this.courseService.findById(this.id)).thenReturn(Optional.of(course));
 		String jsonResponse = "{\"id\":5,\"description\":\"XP\",\"startDate\":\"2021-03-11\",\"finishDate\":\"2021-08-01\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}}";
-		this.mockMvc.perform(get( this.courseURL + "/" + this.id)).andDo(print()).andExpect(status().isOk())
-				.andExpect(content().json(jsonResponse));
+		this.mockMvc.perform(get( this.courseURL + "/" + this.id)
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().isOk())
+			.andExpect(content().json(jsonResponse));
 	}
 
 	@Test
@@ -104,7 +123,9 @@ public class CourseControllerTest {
 		this.id = 10L;
 		when(courseService.findById(this.id)).thenReturn(Optional.empty());
 
-		this.mockMvc.perform(get(this.courseURL + "/" + this.id)).andDo(print()).andExpect(status().isNotFound());
+		this.mockMvc.perform(get(this.courseURL + "/" + this.id)
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -118,8 +139,9 @@ public class CourseControllerTest {
 				+ "{\"id\":5,\"description\":\"XP\",\"startDate\":\"2021-03-11\",\"finishDate\":\"2021-08-01\",\"amountOfStudents\":30,\"category\":{\"id\":4,\"description\":\"Processos\"}},"
 				+ "{\"id\":6,\"description\":\"Testes de Aceitação\",\"startDate\":\"2021-08-10\",\"finishDate\":\"2020-12-10\",\"amountOfStudents\":10,\"category\":{\"id\":3,\"description\":\"Qualidade\"}}"
 				+ "]";
-		this.mockMvc.perform(get(this.courseURL + "/todos")).andDo(print()).andExpect(status().isOk())
-				.andExpect(content().json(jsonResponse));
+		this.mockMvc.perform(get(this.courseURL + "/todos").header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().isOk())
+			.andExpect(content().json(jsonResponse));
 	}
 
 	@Test
@@ -135,7 +157,9 @@ public class CourseControllerTest {
 				+ "{\"id\":2,\"description\":\"JavaWeb\",\"startDate\":\"2020-07-01\",\"finishDate\":\"2020-10-14\",\"amountOfStudents\":30,\"category\":{\"id\":2,\"description\":\"Programação\"}},"
 				+ "{\"id\":3,\"description\":\"Angular\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}],"
 				+ "\"pageable\":\"INSTANCE\",\"totalElements\":3,\"last\":true,\"totalPages\":1,\"size\":3,\"number\":0,\"sort\":{\"sorted\":false,\"unsorted\":true,\"empty\":true},\"first\":true,\"numberOfElements\":3,\"empty\":false}";
-		this.mockMvc.perform(get(this.courseURL + "?description=%&page=" + page + "&size="+ size)).andDo(print())
+		this.mockMvc.perform(get(this.courseURL + "?description=%&page=" + page + "&size="+ size)
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print())
 			.andExpect(status().isOk()).andExpect(content().json(jsonResponse));
 	}
 
@@ -144,9 +168,11 @@ public class CourseControllerTest {
 		this.id = 5L;
 		Course course = getCourseById(this.id );
 		deleteCourse(course);
-		doNothing().when(this.courseService).delete(this.id );
+		doNothing().when(this.courseService).delete(this.id);
 
-		this.mockMvc.perform(delete(this.courseURL +"/"+ this.id )).andDo(print()).andExpect(status().is2xxSuccessful());
+		this.mockMvc.perform(delete(this.courseURL +"/"+ this.id)
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().is2xxSuccessful());
 	}
 
 	@Test
@@ -156,7 +182,9 @@ public class CourseControllerTest {
 				LocaleContextHolder.getLocale());
 		String jsonResult = "[{\"userMessage\":\"Indentificado de curso Inválido para operação.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Indentificado de curso Inválido para operação.\"}]";
 		doThrow(new BusinessException(userMessage)).when(this.courseService).delete(this.id);
-		this.mockMvc.perform(delete(this.courseURL + "/" + this.id )).andDo(print()).andExpect(status().is4xxClientError())
+		this.mockMvc.perform(delete(this.courseURL + "/" + this.id )
+				.header("Authorization", "Bearer " + this.token))
+			.andDo(print()).andExpect(status().is4xxClientError())
 			.andExpect(content().json(jsonResult));
 	}
 
@@ -169,9 +197,10 @@ public class CourseControllerTest {
 
 		String json = "{\"id\":null,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-03-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		String jsonResponse = "{\"id\":7,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-03-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
-		MvcResult result = this.mockMvc.perform(post(this.courseURL + "/novo").contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is2xxSuccessful()).andExpect(content().json(jsonResponse)).andReturn();
-		System.out.println(result);
+		this.mockMvc.perform(post(this.courseURL + "/novo")
+				.header("Authorization", "Bearer " + this.token)
+				.contentType(MediaType.APPLICATION_JSON).content(json))
+			.andExpect(status().is2xxSuccessful()).andExpect(content().json(jsonResponse)).andReturn();
 	}
 
 	@Test
@@ -183,9 +212,11 @@ public class CourseControllerTest {
 
 		String json = "{\"id\":null,\"description\":\"JPA-Hibernate\",\"startDate\":\"2020-04-20\",\"finishDate\":\"2020-04-20\",\"amountOfStudents\":15,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		String jsonResult = "[{\"userMessage\":\"A data de início do curso é maior que a data de finalização.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: A data de início do curso é maior que a data de finalização.\"}]";
-		MvcResult result = this.mockMvc.perform(post(this.courseURL+"/novo").contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
-		System.out.println(result);
+		this.mockMvc.perform(post(this.courseURL+"/novo")
+				.header("Authorization", "Bearer " + this.token)
+				.contentType(MediaType.APPLICATION_JSON).content(json))
+			.andExpect(status().is4xxClientError())
+			.andExpect(content().json(jsonResult)).andReturn();
 	}
 
 	@Test
@@ -199,10 +230,11 @@ public class CourseControllerTest {
 		String json = "{\"id\":3,\"description\":\"Angular\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-30\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		String jsonResponse = "{\"id\":3,\"description\":\"Angular 6\",\"startDate\":\"2020-04-30\",\"finishDate\":\"2020-06-20\",\"amountOfStudents\":20,\"category\":{\"id\":2,\"description\":\"Programação\"}}";
 		when(this.courseService.update(any(Long.class), any(Course.class))).thenReturn(persistendCourse);
-		MvcResult result = this.mockMvc
-				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is2xxSuccessful()).andExpect(content().json(jsonResponse)).andReturn();
-		System.out.println(result);
+		this.mockMvc.perform(put(this.courseURL + "/" + this.id)
+				.contentType(MediaType.APPLICATION_JSON).content(json)
+				.header("Authorization", "Bearer " + this.token))
+			.andExpect(status().is2xxSuccessful())
+			.andExpect(content().json(jsonResponse)).andReturn();
 	}
 
 	@Test
@@ -214,9 +246,10 @@ public class CourseControllerTest {
 		when(this.courseService.update(any(Long.class), any(Course.class)))
 				.thenThrow(new BusinessException(userMessage));
 		String jsonResult = "[{\"userMessage\":\"Existe(m) curso(s) planejado(s) dentro do mesmo período.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Existe(m) curso(s) planejado(s) dentro do mesmo período.\"}]";
-		MvcResult result = this.mockMvc
-				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
+		MvcResult result = this.mockMvc.perform(put(this.courseURL + "/" + this.id)
+				.header("Authorization", "Bearer " + this.token)
+				.contentType(MediaType.APPLICATION_JSON).content(json))
+			.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
 		System.out.println(result);
 	}
 
@@ -230,10 +263,11 @@ public class CourseControllerTest {
 				.thenThrow(new BusinessException(userMessage));
 		String jsonResult = "[{\"userMessage\":\"Indentificado de curso Inválido para operação.\",\"developerMessage\":\"br.com.cast.avaliacao.service.BusinessException: Indentificado de curso Inválido para operação.\"}]";
 
-		MvcResult result = this.mockMvc
-				.perform(put(this.courseURL + "/" + this.id).contentType(MediaType.APPLICATION_JSON).content(json))
-				.andExpect(status().is4xxClientError()).andExpect(content().json(jsonResult)).andReturn();
-		System.out.println(result);
+		this.mockMvc.perform(put(this.courseURL + "/" + this.id)
+					.header("Authorization", "Bearer " + this.token)
+					.contentType(MediaType.APPLICATION_JSON).content(json))
+				.andExpect(status().is4xxClientError())
+				.andExpect(content().json(jsonResult)).andReturn();
 	}
 
 	private Category getCategoryById(Long id) {
@@ -284,5 +318,4 @@ public class CourseControllerTest {
 			this.courseMap.remove(course.getId());
 		}
 	}
-*/	
 }

@@ -12,7 +12,7 @@ import br.com.cast.avaliacao.model.Course;
 
 @SpringBootTest
 public class CourseModelTest {
-/*
+
 	@Test
 	public void categoryCreation() {
 		Category category = new Category();
@@ -51,5 +51,5 @@ public class CourseModelTest {
 		assertThat(course.getCategory().getDescription());
 		assertThat(course.getCategory().getDescription()).isEqualTo("Programação");
 	}
-*/
+
 }
